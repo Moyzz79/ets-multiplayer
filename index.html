@@ -5,17 +5,19 @@
 <title>ETS Multiplayer — Communauté de transport</title>
 <style>
 :root{font-family:system-ui,Segoe UI,sans-serif;color:#e8f0f8;background:#0b1220}*{box-sizing:border-box}body{margin:0}header{background:#111e30;border-bottom:1px solid #293b51;padding:18px max(20px,calc((100% - 1050px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}a{color:#6ec8ff}nav a{margin-left:16px;text-decoration:none;color:#c5d8e9}main{max-width:1050px;margin:auto;padding:32px 20px}.hero{padding:38px 0}h1{font-size:clamp(30px,5vw,48px);margin:0 0 12px}h2{margin-top:35px}.muted{color:#9bb0c7}.btn,button{border:0;background:#1c9be5;color:white;border-radius:9px;padding:12px 17px;cursor:pointer;font-weight:700}.btn{text-decoration:none;display:inline-block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}.card{background:#152338;border:1px solid #2b3e57;border-radius:14px;padding:20px}.number{font-size:28px;font-weight:800;color:#70caff}input{background:#0c1728;color:white;border:1px solid #41546d;border-radius:8px;padding:12px;width:100%;margin:6px 0 12px}label{display:block}.entry{border-bottom:1px solid #30445b;padding:10px 0;overflow-wrap:anywhere}footer{text-align:center;color:#9bb0c7;padding:32px}small{color:#9bb0c7}
+#auth-panel{max-width:520px;margin:28px auto}.auth-actions{display:flex;gap:10px;flex-wrap:wrap}.auth-actions button{flex:1}.message{padding:12px 0;min-height:24px}.error{color:#ff9b9b}.success{color:#8ee7b1}body:not(.signed-in) #dashboard,body:not(.signed-in) #vtc,body:not(.signed-in) #convois,body:not(.signed-in) #history-section{display:none}body.signed-in #auth-panel{display:none}#user-bar{display:none}body.signed-in #user-bar{display:block}button:disabled{opacity:.6;cursor:wait}
 </style>
 </head>
 <body>
 <header><strong>🚛 ETS MULTIPLAYER</strong><nav><a href="#dashboard">Tableau de bord</a><a href="#vtc">VTC</a><a href="#convois">Convois</a></nav></header>
-<main>
+<main><div id="user-bar" class="card"><span id="current-user"></span> <button id="logout" type="button">Se déconnecter</button></div>
+<section id="auth-panel" class="card"><h2>Espace chauffeur</h2><p class="muted">Crée ton compte ou connecte-toi pour accéder au tableau de bord.</p><form id="auth-form"><label>Adresse e-mail<input id="auth-email" type="email" autocomplete="email" required></label><label>Mot de passe (au moins 8 caractères)<input id="auth-password" type="password" minlength="8" autocomplete="current-password" required></label><div class="auth-actions"><button id="signup" type="button">Créer mon compte</button><button id="signin" type="submit">Me connecter</button></div></form><p id="auth-message" class="message" role="status" aria-live="polite"></p><small>Si la confirmation par e-mail est activée, vérifie ta boîte mail après inscription.</small></section>
 <section class="hero"><h1>La route commence ici.</h1><p class="muted">Ta future communauté de transport sur Euro Truck Simulator 2.</p><a class="btn" href="#dashboard">Accéder au tableau de bord</a></section>
 <section id="dashboard"><h2>Tableau de bord chauffeur</h2><div class="grid"><div class="card"><div class="muted">Kilomètres</div><div class="number" id="km">0</div></div><div class="card"><div class="muted">Livraisons</div><div class="number" id="deliveries">0</div></div><div class="card"><div class="muted">Gains virtuels</div><div class="number" id="earnings">0 €</div></div></div>
 <div class="card" style="margin-top:16px"><h3>Enregistrer une livraison</h3><form id="delivery-form"><label>Distance parcourue (km)<input id="distance" type="number" min="1" max="100000" step="1" required placeholder="Ex. 450"></label><button type="submit">Ajouter la livraison</button></form><small>Démo locale : les données restent dans ce navigateur. 2 € virtuels gagnés par km.</small></div></section>
 <section id="vtc"><h2>Entreprises VTC</h2><div class="card"><p>Crée le nom de ton entreprise de transport.</p><form id="vtc-form"><label>Nom de l'entreprise<input id="company" maxlength="60" required placeholder="Ex. Transport Horizon"></label><button type="submit">Enregistrer ma VTC</button></form><p id="vtc-name" class="muted">Aucune entreprise enregistrée.</p></div></section>
 <section id="convois"><h2>Convois</h2><div class="card"><p class="muted">Les convois seront bientôt disponibles. La prochaine étape permettra de les organiser et de s'y inscrire.</p></div></section>
-<section><h2>Historique des livraisons</h2><div class="card" id="history"><p class="muted">Aucune livraison enregistrée.</p></div><p><button id="reset" type="button">Effacer mes données de démonstration</button></p></section>
+<section id="history-section"><h2>Historique des livraisons</h2><div class="card" id="history"><p class="muted">Aucune livraison enregistrée.</p></div><p><button id="reset" type="button">Effacer mes données de démonstration</button></p></section>
 </main><footer>ETS Multiplayer — Prototype communautaire non affilié à SCS Software ou TruckersMP.</footer>
 <script>
 const key='ets-multiplayer-demo-v1';
@@ -30,5 +32,37 @@ el('delivery-form').addEventListener('submit',e=>{e.preventDefault();const dista
 el('vtc-form').addEventListener('submit',e=>{e.preventDefault();const name=el('company').value.trim();if(!name)return;state.company=name;save();render();e.target.reset();});
 el('reset').addEventListener('click',()=>{if(confirm('Effacer toutes les données de démonstration ?')){state={deliveries:[],company:''};save();render();}});
 render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// Remplacer UNIQUEMENT ces deux valeurs par celles de Supabase > Project Settings > API Keys.
+// Ne jamais utiliser une clé secret ou service_role ici.
+const SUPABASE_URL = 'COLLE_ICI_TON_PROJECT_URL';
+const SUPABASE_PUBLISHABLE_KEY = 'COLLE_ICI_TA_CLE_PUBLISHABLE';
+const authMessage = document.getElementById('auth-message');
+const configured = SUPABASE_URL.startsWith('https://moyzz79.github.io/ets-multiplayer/') && !SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_38uM9WMRFcQFUQ45U5ADlA_bhu1tqFI');
+const client = configured && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+function message(text, error=false){authMessage.textContent=text;authMessage.className='message '+(error?'error':'success');}
+function showUser(user){document.body.classList.toggle('signed-in',!!user);document.getElementById('current-user').textContent=user?'Connecté : '+user.email:'';}
+function busy(value){document.getElementById('signup').disabled=value;document.getElementById('signin').disabled=value;}
+if(!client)message('Configuration Supabase manquante ou bibliothèque non chargée. Vérifie les deux valeurs dans index.html.',true);
+else {
+  client.auth.getUser().then(({data,error})=>{if(error)message(error.message,true);showUser(data?.user||null);});
+  client.auth.onAuthStateChange((_event,session)=>showUser(session?.user||null));
+}
+document.getElementById('signup').addEventListener('click',async()=>{
+  if(!client)return;
+  const email=document.getElementById('auth-email').value.trim();const password=document.getElementById('auth-password').value;
+  if(!document.getElementById('auth-email').checkValidity()||password.length<8){message('Entre une adresse e-mail valide et un mot de passe d’au moins 8 caractères.',true);return;}
+  busy(true);
+  try{const {data,error}=await client.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;message(data.session?'Compte créé, tu es connecté.':'Inscription demandée. Vérifie ton e-mail pour confirmer ton compte.');}
+  catch(err){message(err.message||'Inscription impossible.',true);}finally{busy(false);}
+});
+document.getElementById('auth-form').addEventListener('submit',async(e)=>{
+  e.preventDefault();if(!client)return;busy(true);
+  try{const {error}=await client.auth.signInWithPassword({email:document.getElementById('auth-email').value.trim(),password:document.getElementById('auth-password').value});if(error)throw error;message('Connexion réussie.');}
+  catch(err){message(err.message||'Connexion impossible.',true);}finally{busy(false);}
+});
+document.getElementById('logout').addEventListener('click',async()=>{if(!client)return;const {error}=await client.auth.signOut();if(error)alert(error.message);});
 </script>
 </body></html>
