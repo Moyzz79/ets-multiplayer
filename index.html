@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ETS Multiplayer — Communauté de transport</title>
+<style>
+:root{font-family:system-ui,Segoe UI,sans-serif;color:#e8f0f8;background:#0b1220}*{box-sizing:border-box}body{margin:0}header{background:#111e30;border-bottom:1px solid #293b51;padding:18px max(20px,calc((100% - 1050px)/2));display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}a{color:#6ec8ff}nav a{margin-left:16px;text-decoration:none;color:#c5d8e9}main{max-width:1050px;margin:auto;padding:32px 20px}.hero{padding:38px 0}h1{font-size:clamp(30px,5vw,48px);margin:0 0 12px}h2{margin-top:35px}.muted{color:#9bb0c7}.btn,button{border:0;background:#1c9be5;color:white;border-radius:9px;padding:12px 17px;cursor:pointer;font-weight:700}.btn{text-decoration:none;display:inline-block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}.card{background:#152338;border:1px solid #2b3e57;border-radius:14px;padding:20px}.number{font-size:28px;font-weight:800;color:#70caff}input{background:#0c1728;color:white;border:1px solid #41546d;border-radius:8px;padding:12px;width:100%;margin:6px 0 12px}label{display:block}.entry{border-bottom:1px solid #30445b;padding:10px 0;overflow-wrap:anywhere}footer{text-align:center;color:#9bb0c7;padding:32px}small{color:#9bb0c7}
+</style>
+</head>
+<body>
+<header><strong>🚛 ETS MULTIPLAYER</strong><nav><a href="#dashboard">Tableau de bord</a><a href="#vtc">VTC</a><a href="#convois">Convois</a></nav></header>
+<main>
+<section class="hero"><h1>La route commence ici.</h1><p class="muted">Ta future communauté de transport sur Euro Truck Simulator 2.</p><a class="btn" href="#dashboard">Accéder au tableau de bord</a></section>
+<section id="dashboard"><h2>Tableau de bord chauffeur</h2><div class="grid"><div class="card"><div class="muted">Kilomètres</div><div class="number" id="km">0</div></div><div class="card"><div class="muted">Livraisons</div><div class="number" id="deliveries">0</div></div><div class="card"><div class="muted">Gains virtuels</div><div class="number" id="earnings">0 €</div></div></div>
+<div class="card" style="margin-top:16px"><h3>Enregistrer une livraison</h3><form id="delivery-form"><label>Distance parcourue (km)<input id="distance" type="number" min="1" max="100000" step="1" required placeholder="Ex. 450"></label><button type="submit">Ajouter la livraison</button></form><small>Démo locale : les données restent dans ce navigateur. 2 € virtuels gagnés par km.</small></div></section>
+<section id="vtc"><h2>Entreprises VTC</h2><div class="card"><p>Crée le nom de ton entreprise de transport.</p><form id="vtc-form"><label>Nom de l'entreprise<input id="company" maxlength="60" required placeholder="Ex. Transport Horizon"></label><button type="submit">Enregistrer ma VTC</button></form><p id="vtc-name" class="muted">Aucune entreprise enregistrée.</p></div></section>
+<section id="convois"><h2>Convois</h2><div class="card"><p class="muted">Les convois seront bientôt disponibles. La prochaine étape permettra de les organiser et de s'y inscrire.</p></div></section>
+<section><h2>Historique des livraisons</h2><div class="card" id="history"><p class="muted">Aucune livraison enregistrée.</p></div><p><button id="reset" type="button">Effacer mes données de démonstration</button></p></section>
+</main><footer>ETS Multiplayer — Prototype communautaire non affilié à SCS Software ou TruckersMP.</footer>
+<script>
+const key='ets-multiplayer-demo-v1';
+let state;
+try { state=JSON.parse(localStorage.getItem(key))||{}; } catch {state={};}
+if(!Array.isArray(state.deliveries))state.deliveries=[];
+if(typeof state.company!=='string')state.company='';
+const el=id=>document.getElementById(id);
+function save(){try{localStorage.setItem(key,JSON.stringify(state));}catch{alert('Le navigateur ne peut pas enregistrer les données localement.');}}
+function render(){const total=state.deliveries.reduce((sum,d)=>sum+d,0);el('km').textContent=total.toLocaleString('fr-FR');el('deliveries').textContent=state.deliveries.length;el('earnings').textContent=(total*2).toLocaleString('fr-FR')+' €';el('vtc-name').textContent=state.company?'Entreprise : '+state.company:'Aucune entreprise enregistrée.';const box=el('history');box.replaceChildren();if(!state.deliveries.length){const p=document.createElement('p');p.className='muted';p.textContent='Aucune livraison enregistrée.';box.append(p);}else{state.deliveries.slice().reverse().forEach((d,i)=>{const div=document.createElement('div');div.className='entry';div.textContent='Livraison '+(state.deliveries.length-i)+' — '+d.toLocaleString('fr-FR')+' km';box.append(div);});}}
+el('delivery-form').addEventListener('submit',e=>{e.preventDefault();const distance=Number(el('distance').value);if(!Number.isInteger(distance)||distance<1||distance>100000)return;state.deliveries.push(distance);save();render();e.target.reset();});
+el('vtc-form').addEventListener('submit',e=>{e.preventDefault();const name=el('company').value.trim();if(!name)return;state.company=name;save();render();e.target.reset();});
+el('reset').addEventListener('click',()=>{if(confirm('Effacer toutes les données de démonstration ?')){state={deliveries:[],company:''};save();render();}});
+render();
+</script>
+</body></html>
