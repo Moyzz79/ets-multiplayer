@@ -40,8 +40,8 @@ render();
 const SUPABASE_URL = 'COLLE_ICI_TON_PROJECT_URL';
 const SUPABASE_PUBLISHABLE_KEY = 'COLLE_ICI_TA_CLE_PUBLISHABLE';
 const authMessage = document.getElementById('auth-message');
-const configured = SUPABASE_URL.startsWith('https://moyzz79.github.io/ets-multiplayer/') && !SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_38uM9WMRFcQFUQ45U5ADlA_bhu1tqFI');
-const client = configured && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : ('publishable_38uM9WMRFcQFUQ45U5ADlA_bhu1tqFI');;
+const configured = SUPABASE_URL.startsWith('https://ggknkgfgrhdjzesttwyq.supabase.co') && !SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_38uM9WMRFcQFUQ45U5ADlA_bhu1tqFI');
+const client = configured && window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 function message(text, error=false){authMessage.textContent=text;authMessage.className='message '+(error?'error':'success');}
 function showUser(user){document.body.classList.toggle('signed-in',!!user);document.getElementById('current-user').textContent=user?'Connecté : '+user.email:'';}
 function busy(value){document.getElementById('signup').disabled=value;document.getElementById('signin').disabled=value;}
